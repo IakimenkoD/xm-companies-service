@@ -9,6 +9,4 @@ type UsersStore interface {
 	GetByFilter(ctx context.Context, filter interface{}) (*model.User, error)
 	GetListByFilter(ctx context.Context, filter interface{}) ([]*model.User, error)
 	DeleteByFilter(ctx context.Context, filter interface{}) error
-
-	Upsert(ctx context.Context, identityUserCode *model.User) error
 }
