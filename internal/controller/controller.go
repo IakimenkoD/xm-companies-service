@@ -8,6 +8,8 @@ import (
 	"github.com/IakimenkoD/xm-companies-service/internal/repository/dataprovider"
 )
 
+//go:generate minimock -i CompaniesService -g -o controller_mock.go
+
 // CompaniesService is a main controller for business logic.
 type CompaniesService interface {
 	CreateCompany(ctx context.Context, company *model.Company) (int64, error)
@@ -37,6 +39,9 @@ func (c Controller) GetCompanyByID(ctx context.Context, id int64) (*model.Compan
 }
 
 func (c Controller) CreateCompany(ctx context.Context, company *model.Company) (id int64, err error) {
+	if company == nil {
+		return id, ierr.BadRequest
+	}
 	return c.companyStorage.Insert(ctx, company)
 }
 
@@ -45,6 +50,9 @@ func (c Controller) GetCompanies(ctx context.Context, filter *dataprovider.Compa
 }
 
 func (c Controller) UpdateCompany(ctx context.Context, company *model.Company) error {
+	if company == nil {
+		return ierr.BadRequest
+	}
 	return c.companyStorage.Update(ctx, company)
 }
 

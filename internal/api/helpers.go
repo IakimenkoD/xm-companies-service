@@ -135,7 +135,7 @@ func respondError(w http.ResponseWriter, err error) {
 	case errors.Is(err, ierr.NotFound):
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
-	case errors.Is(err, ierr.WrongParam):
+	case errors.Is(err, ierr.WrongParam), errors.Is(err, ierr.BadRequest):
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	default:
