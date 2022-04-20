@@ -8,6 +8,7 @@ import (
 	"github.com/IakimenkoD/xm-companies-service/internal/controller"
 	"github.com/IakimenkoD/xm-companies-service/internal/repository/database"
 	"github.com/IakimenkoD/xm-companies-service/internal/repository/dataprovider/pg"
+	"github.com/IakimenkoD/xm-companies-service/internal/service"
 	"github.com/IakimenkoD/xm-companies-service/internal/service/http"
 	"go.uber.org/zap"
 	"os"
@@ -16,7 +17,7 @@ import (
 )
 
 func main() {
-	logger, _ := zap.NewProduction()
+	logger, _ := zap.NewDevelopment()
 	defer func(logger *zap.Logger) {
 		err := logger.Sync()
 		if err != nil {
@@ -41,12 +42,17 @@ func main() {
 
 	if err = dbClient.Migrate(); err != nil {
 		logger.Fatal("while applying database migration", zap.Error(err))
-
 	}
 	logger.Info("db migration successful")
 
 	storage := pg.NewCompanyStorage(dbClient, logger)
-	companiesService := controller.NewCompaniesService(cfg, storage)
+
+	mq, err := service.NewMessageQueue(cfg, logger)
+	if err != nil {
+		logger.Fatal("while message queue init", zap.Error(err))
+	}
+
+	companiesService := controller.NewCompaniesService(cfg, storage, mq)
 
 	ipChecker := http.NewIpApi(cfg, logger)
 

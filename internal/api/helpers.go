@@ -28,7 +28,7 @@ func getURLInt64(r *http.Request, field string) (int64, error) {
 
 	int64Param, err := strconv.ParseInt(param, 10, 64)
 	if err != nil {
-		return 0, ierr.WrongParam
+		return 0, ierr.InvalidParam
 	}
 
 	return int64Param, nil
@@ -56,7 +56,7 @@ func getQueryInt64Slice(r *http.Request, field string) ([]int64, error) {
 			}
 			val, err := strconv.ParseInt(s, 10, 64)
 			if err != nil {
-				return nil, ierr.WrongParam
+				return nil, ierr.InvalidParam
 			}
 			vals = append(vals, val)
 		}
@@ -136,7 +136,7 @@ func respondError(w http.ResponseWriter, err error) {
 	case errors.Is(err, ierr.NotFound):
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
-	case errors.Is(err, ierr.WrongParam), errors.Is(err, ierr.BadRequest), errors.Is(err, io.EOF):
+	case errors.Is(err, ierr.InvalidParam), errors.Is(err, ierr.BadRequest), errors.Is(err, io.EOF), errors.Is(err, ierr.CompanyExists):
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	default:

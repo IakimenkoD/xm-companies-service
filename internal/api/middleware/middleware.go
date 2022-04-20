@@ -11,8 +11,7 @@ import (
 
 const allowedLocation = "CY"
 
-// IpAddress
-func CheckIPAddress(ipChecker service.IpApi) func(http.Handler) http.Handler {
+func CheckIPAddress(ipChecker service.IpChecker) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
@@ -23,7 +22,7 @@ func CheckIPAddress(ipChecker service.IpApi) func(http.Handler) http.Handler {
 				return
 			}
 			if location != allowedLocation {
-				http.Error(w, "your location unallowed", http.StatusForbidden)
+				http.Error(w, "your location is not allowed", http.StatusForbidden)
 				return
 			}
 

@@ -13,14 +13,15 @@ import (
 type Server struct {
 	*http.Server
 	controller controller.CompaniesService
-	ipChecker  service.IpApi
+	ipChecker  service.IpChecker
+	mq         service.MessageQueue
 	cfg        *config.Config
 }
 
 func NewServer(
 	cfg *config.Config,
 	controller controller.CompaniesService,
-	ipChecker service.IpApi,
+	ipChecker service.IpChecker,
 
 ) (*Server, error) {
 	srv := &Server{
@@ -47,10 +48,11 @@ func NewServer(
 
 	r.Route("/api", func(r chi.Router) {
 		r.Route("/v1", func(r chi.Router) {
-			r.Route("/company", func(r chi.Router) {
-				r.Get("/", srv.getCompany)
+			r.Route("/companies", func(r chi.Router) {
+				r.Get("/", srv.getCompanies)
 				r.Get("/{companyID}", srv.getCompanyByID)
 				r.Put("/{companyID}", srv.updateCompany)
+				r.Patch("/{companyID}", srv.patchCompany)
 
 				r.With(mw.CheckIPAddress(srv.ipChecker)).Post("/", srv.createCompany)
 				r.With(mw.CheckIPAddress(srv.ipChecker)).Delete("/{companyID}", srv.deleteCompany)

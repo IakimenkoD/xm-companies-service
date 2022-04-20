@@ -13,9 +13,10 @@ type Config struct {
 	ShutdownTimeout time.Duration `mapstructure:"shutdown_timeout"`
 	Version         string        `mapstructure:"version"`
 
-	API      api    `mapstructure:"api"`
-	DB       DB     `mapstructure:"db"`
-	LogLevel string `mapstructure:"log_level"`
+	API      api          `mapstructure:"api"`
+	DB       DB           `mapstructure:"db"`
+	LogLevel string       `mapstructure:"log_level"`
+	MQ       MessageQueue `mapstructure:"mq"`
 
 	IpApi ipApi `mapstructure:"ip_api"`
 }
@@ -29,6 +30,11 @@ type api struct {
 type ipApi struct {
 	Address string        `mapstructure:"address"`
 	Timeout time.Duration `mapstructure:"timeout"`
+}
+
+type MessageQueue struct {
+	Address string `mapstructure:"address"`
+	Queue   string `mapstructure:"queue"`
 }
 
 type DB struct {
@@ -54,6 +60,9 @@ var defaults = map[string]interface{}{
 
 	"ip_api.address":      "https://ipapi.co/",
 	"ip_api.read_timeout": time.Second * 5,
+
+	"mq.address": "amqp://guest:guest@localhost:5672/",
+	"mq.queue":   "company_updated",
 
 	"log_level": "debug",
 }

@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	ierr "github.com/IakimenkoD/xm-companies-service/internal/errors"
 	"github.com/IakimenkoD/xm-companies-service/internal/model"
 	"github.com/pkg/errors"
 	"net/http"
@@ -12,7 +13,7 @@ func (srv *Server) health(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (srv *Server) getCompany(w http.ResponseWriter, r *http.Request) {
+func (srv *Server) getCompanies(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	filter, err := parseCompaniesFilter(r)
 	if err != nil {
@@ -56,17 +57,23 @@ func (srv *Server) getCompanyByID(w http.ResponseWriter, r *http.Request) {
 func (srv *Server) createCompany(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	data := &model.Company{}
-	if err := json.NewDecoder(r.Body).Decode(data); err != nil {
-		respondError(w, errors.Wrap(err, "decoding request"))
+	company := &model.Company{}
+	if err := json.NewDecoder(r.Body).Decode(company); err != nil {
+		respondError(w, errors.Wrap(ierr.BadRequest, err.Error()))
+		return
+	}
+	if err := company.CheckFields(); err != nil {
+		respondError(w, err)
 		return
 	}
 
-	id, err := srv.controller.CreateCompany(ctx, data)
+	id, err := srv.controller.CreateCompany(ctx, company)
 	if err != nil {
 		respondError(w, err)
 		return
 	}
+	company.ID = id
+
 	w.Header().Set("Location", "/company/"+strconv.FormatInt(id, 10))
 	w.WriteHeader(http.StatusCreated)
 }
@@ -79,6 +86,28 @@ func (srv *Server) updateCompany(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err := srv.controller.UpdateCompany(ctx, data); err != nil {
+		respondError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (srv *Server) patchCompany(w http.ResponseWriter, r *http.Request) {
+	id, err := getURLInt64(r, "companyID")
+	if err != nil {
+		respondError(w, err)
+		return
+	}
+
+	ctx := r.Context()
+	company := &model.Company{}
+	if err = json.NewDecoder(r.Body).Decode(company); err != nil {
+		respondError(w, err)
+		return
+	}
+	company.ID = id
+	if err = srv.controller.UpdateCompany(ctx, company); err != nil {
 		respondError(w, err)
 		return
 	}

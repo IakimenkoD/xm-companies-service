@@ -17,7 +17,7 @@ const (
 	localhost = "127.0.0.1"
 )
 
-func NewIpApi(conf *config.Config, log *zap.Logger) service.IpApi {
+func NewIpApi(conf *config.Config, log *zap.Logger) service.IpChecker {
 	return &IpApi{
 		client: &http.Client{
 			Timeout: conf.API.ReadTimeout,
@@ -34,14 +34,13 @@ type IpApi struct {
 	Url string
 }
 
-// GetUserLocation get location from IpApi service by ip.
+// GetUserLocation gets location from IpApi service by ip.
 func (i *IpApi) GetUserLocation(ctx context.Context, ip string) (location string, err error) {
 	//debug
 	if ip == localhost {
 		return "CY", err
 	}
 
-	i.log.Info(ip)
 	reqUrl := i.Url + ip + "/country/"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqUrl, nil)
 	req.Header.Set("User-Agent", "ipapi.co/#go-v1.5")
@@ -70,7 +69,7 @@ func (i *IpApi) GetUserLocation(ctx context.Context, ip string) (location string
 	res := string(body)
 
 	if resp.StatusCode != http.StatusOK {
-		i.log.Error("ip_api service responded unexpectedly",
+		i.log.Error("ip_api service responded non 200 status code",
 			zap.Int("status_code", resp.StatusCode),
 			zap.String("body", res))
 		return "", errors.New("unexpected response from external service")
