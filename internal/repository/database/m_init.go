@@ -34,5 +34,4 @@ func migrationInit(schema string) *migrator.Migration {
 
 /* ROLLBACK SQL
 DROP TABLE IF EXISTS xm.companies;
-DROP TABLE IF EXISTS facerec.persons;
 */

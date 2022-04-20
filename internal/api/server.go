@@ -41,21 +41,25 @@ func NewServer(
 	r.Use(middleware.Recoverer)
 
 	r.Route("/internal", func(r chi.Router) {
+		r.Post("/signin", srv.signIn)
 		r.Get("/health", srv.health)
 
 	})
 
-	r.Route("/api", func(r chi.Router) {
-		r.Route("/v1", func(r chi.Router) {
-			r.Route("/companies", func(r chi.Router) {
-				r.Get("/", srv.getCompanies)
-				r.Get("/{companyID}", srv.getCompanyByID)
-				r.Put("/{companyID}", srv.updateCompany)
-				r.Patch("/{companyID}", srv.patchCompany)
+	r.Route("/api/v1/companies", func(r chi.Router) {
+		r.Get("/", srv.getCompanies)
+		r.Route("/{companyID}", func(r chi.Router) {
+			r.Get("/", srv.getCompanyByID)
+			r.Put("/", srv.updateCompany)
+			r.Patch("/", srv.patchCompany)
+		})
 
-				r.With(mw.CheckIPAddress(srv.ipChecker)).Post("/", srv.createCompany)
-				r.With(mw.CheckIPAddress(srv.ipChecker)).Delete("/{companyID}", srv.deleteCompany)
-			})
+		r.Group(func(r chi.Router) {
+			r.Use(mw.CheckIPAddress(srv.ipChecker))
+			r.Use(mw.CheckAuth(srv.cfg.API.JWTKey))
+
+			r.Post("/", srv.createCompany)
+			r.Delete("/{companyID}", srv.deleteCompany)
 		})
 	})
 

@@ -42,6 +42,7 @@ require (
 	github.com/daixiang0/gci v0.3.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/denis-tingaikin/go-header v0.4.3 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/esimonov/ifshort v1.0.4 // indirect
 	github.com/ettle/strcase v0.1.1 // indirect
 	github.com/fatih/color v1.13.0 // indirect

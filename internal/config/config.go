@@ -25,6 +25,7 @@ type api struct {
 	Address      string        `mapstructure:"address"`
 	ReadTimeout  time.Duration `mapstructure:"read_timeout"`
 	WriteTimeout time.Duration `mapstructure:"write_timeout"`
+	JWTKey       []byte        `mapstructure:"jwt_key"`
 }
 
 type ipApi struct {
@@ -57,6 +58,7 @@ var defaults = map[string]interface{}{
 	"api.address":       ":4000",
 	"api.read_timeout":  time.Second * 5,
 	"api.write_timeout": time.Second * 5,
+	"api.jwt_key":       []byte("IGdvdCBhIHNlY3JldCBjYW4geW91IGtlZXAgaXQ="),
 
 	"ip_api.address":      "https://ipapi.co/",
 	"ip_api.read_timeout": time.Second * 5,
