@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"github.com/IakimenkoD/xm-companies-service/internal/model"
+	"github.com/pkg/errors"
 	"net/http"
 	"strconv"
 )
@@ -57,7 +58,7 @@ func (srv *Server) createCompany(w http.ResponseWriter, r *http.Request) {
 
 	data := &model.Company{}
 	if err := json.NewDecoder(r.Body).Decode(data); err != nil {
-		respondError(w, err)
+		respondError(w, errors.Wrap(err, "decoding request"))
 		return
 	}
 

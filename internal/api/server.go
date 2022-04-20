@@ -1,8 +1,10 @@
 package api
 
 import (
+	mw "github.com/IakimenkoD/xm-companies-service/internal/api/middleware"
 	"github.com/IakimenkoD/xm-companies-service/internal/config"
 	"github.com/IakimenkoD/xm-companies-service/internal/controller"
+	"github.com/IakimenkoD/xm-companies-service/internal/service"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"net/http"
@@ -11,12 +13,15 @@ import (
 type Server struct {
 	*http.Server
 	controller controller.CompaniesService
+	ipChecker  service.IpApi
 	cfg        *config.Config
 }
 
 func NewServer(
 	cfg *config.Config,
 	controller controller.CompaniesService,
+	ipChecker service.IpApi,
+
 ) (*Server, error) {
 	srv := &Server{
 		Server: &http.Server{
@@ -26,6 +31,7 @@ func NewServer(
 		},
 		cfg:        cfg,
 		controller: controller,
+		ipChecker:  ipChecker,
 	}
 
 	r := chi.NewRouter()
@@ -43,10 +49,11 @@ func NewServer(
 		r.Route("/v1", func(r chi.Router) {
 			r.Route("/company", func(r chi.Router) {
 				r.Get("/", srv.getCompany)
-				r.Post("/", srv.createCompany)
 				r.Get("/{companyID}", srv.getCompanyByID)
 				r.Put("/{companyID}", srv.updateCompany)
-				r.Delete("/{companyID}", srv.deleteCompany)
+
+				r.With(mw.CheckIPAddress(srv.ipChecker)).Post("/", srv.createCompany)
+				r.With(mw.CheckIPAddress(srv.ipChecker)).Delete("/{companyID}", srv.deleteCompany)
 			})
 		})
 	})

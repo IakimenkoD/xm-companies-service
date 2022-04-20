@@ -16,12 +16,19 @@ type Config struct {
 	API      api    `mapstructure:"api"`
 	DB       DB     `mapstructure:"db"`
 	LogLevel string `mapstructure:"log_level"`
+
+	IpApi ipApi `mapstructure:"ip_api"`
 }
 
 type api struct {
 	Address      string        `mapstructure:"address"`
 	ReadTimeout  time.Duration `mapstructure:"read_timeout"`
 	WriteTimeout time.Duration `mapstructure:"write_timeout"`
+}
+
+type ipApi struct {
+	Address string        `mapstructure:"address"`
+	Timeout time.Duration `mapstructure:"timeout"`
 }
 
 type DB struct {
@@ -44,6 +51,9 @@ var defaults = map[string]interface{}{
 	"api.address":       ":4000",
 	"api.read_timeout":  time.Second * 5,
 	"api.write_timeout": time.Second * 5,
+
+	"ip_api.address":      "https://ipapi.co/",
+	"ip_api.read_timeout": time.Second * 5,
 
 	"log_level": "debug",
 }

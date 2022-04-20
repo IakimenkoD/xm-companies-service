@@ -1,29 +1,48 @@
 package middleware
 
 import (
+	"github.com/IakimenkoD/xm-companies-service/internal/service"
+	"net"
 	"net/http"
+	"strings"
 )
 
 // Auth
 
+const allowedLocation = "CY"
+
 // IpAddress
-func CheckIPAddress(defaultIP string) func(http.Handler) http.Handler {
+func CheckIPAddress(ipChecker service.IpApi) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
-			//ip, _, _ := net.SplitHostPort(r.RemoteAddr)
-			//
-			//if !isIPv4(ip) {
-			//	ip = defaultIP
-			//}
-			////TODO
+			ip := getUserIP(r)
+			location, err := ipChecker.GetUserLocation(ctx, ip)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			if location != allowedLocation {
+				http.Error(w, "your location unallowed", http.StatusForbidden)
+				return
+			}
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
 }
 
-//func isIPv4(str string) bool {
-//	ip := net.ParseIP(str)
-//	return ip != nil && strings.Contains(str, ".")
-//}
+func getUserIP(r *http.Request) string {
+	ipAddress := r.Header.Get("X-Real-Ip")
+	if ipAddress == "" {
+		ipAddress = r.Header.Get("X-Forwarded-For")
+	}
+	if ipAddress == "" {
+		ipAddress = r.RemoteAddr
+	}
+	if len(strings.Split(ipAddress, ":")) > 1 {
+		ipAddress, _, _ = net.SplitHostPort(ipAddress)
+	}
+
+	return ipAddress
+}

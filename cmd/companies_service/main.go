@@ -8,6 +8,7 @@ import (
 	"github.com/IakimenkoD/xm-companies-service/internal/controller"
 	"github.com/IakimenkoD/xm-companies-service/internal/repository/database"
 	"github.com/IakimenkoD/xm-companies-service/internal/repository/dataprovider/pg"
+	"github.com/IakimenkoD/xm-companies-service/internal/service/http"
 	"go.uber.org/zap"
 	"os"
 	"os/signal"
@@ -45,9 +46,11 @@ func main() {
 	logger.Info("db migration successful")
 
 	storage := pg.NewCompanyStorage(dbClient, logger)
-	service := controller.NewCompaniesService(cfg, storage)
+	companiesService := controller.NewCompaniesService(cfg, storage)
 
-	apiServer, err := api.NewServer(cfg, service)
+	ipChecker := http.NewIpApi(cfg, logger)
+
+	apiServer, err := api.NewServer(cfg, companiesService, ipChecker)
 	if err != nil {
 		logger.Fatal("server init failed", zap.Error(err))
 	}
@@ -61,9 +64,9 @@ func main() {
 		serverErrors <- apiServer.ListenAndServe()
 	}()
 
-	logger.Info("service started")
+	logger.Info("controller started")
 
-	defer logger.Info("service stopped")
+	defer logger.Info("controller stopped")
 
 	select {
 	case err = <-serverErrors:

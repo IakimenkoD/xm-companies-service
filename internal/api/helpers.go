@@ -5,6 +5,7 @@ import (
 	"github.com/IakimenkoD/xm-companies-service/internal/repository/dataprovider"
 	"github.com/go-chi/chi"
 	"github.com/pkg/errors"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -135,7 +136,7 @@ func respondError(w http.ResponseWriter, err error) {
 	case errors.Is(err, ierr.NotFound):
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
-	case errors.Is(err, ierr.WrongParam), errors.Is(err, ierr.BadRequest):
+	case errors.Is(err, ierr.WrongParam), errors.Is(err, ierr.BadRequest), errors.Is(err, io.EOF):
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	default:
