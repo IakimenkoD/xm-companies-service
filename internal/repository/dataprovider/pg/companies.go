@@ -59,22 +59,22 @@ func (s *CompanyStore) GetListByFilter(ctx context.Context, filter *dataprovider
 
 	query, args, err := qb.PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "creating sql query for getting entities by filter")
+		return nil, errors.Wrap(err, "creating sql query for getting companies by filter")
 	}
 
 	s.log.Debug("selecting company query SQL",
 		zap.String("query", query),
 		zap.Any("args", args))
-	fmt.Println(filter)
-	var entities []*model.Company
-	if err = sqlx.SelectContext(ctx, s.db, &entities, query, args...); err != nil {
+
+	companies := []*model.Company{}
+	if err = sqlx.SelectContext(ctx, s.db, &companies, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-		return nil, errors.Wrapf(err, "selecting entities by filter from database with query %s", query)
+		return nil, errors.Wrapf(err, "selecting companies by filter from database with query %s", query)
 	}
 
-	return entities, nil
+	return companies, nil
 }
 
 func (s *CompanyStore) Insert(ctx context.Context, company *model.Company) (id int64, err error) {
@@ -117,7 +117,7 @@ func (s *CompanyStore) Update(ctx context.Context, company *model.Company) error
 	}
 
 	if !emptyString(company.Code) {
-		updates["code"] = company.Name
+		updates["code"] = company.Code
 	}
 
 	if !emptyString(company.Country) {

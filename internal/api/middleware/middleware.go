@@ -7,8 +7,6 @@ import (
 	"strings"
 )
 
-// Auth
-
 const allowedLocation = "CY"
 
 func CheckIPAddress(ipChecker service.IpChecker) func(http.Handler) http.Handler {

@@ -18,13 +18,6 @@ import (
 
 func main() {
 	logger, _ := zap.NewDevelopment()
-	defer func(logger *zap.Logger) {
-		err := logger.Sync()
-		if err != nil {
-			logger.Fatal(err.Error())
-		}
-	}(logger)
-
 	var (
 		configFilePath = flag.String("config", "./config.example.json", "path to configuration file")
 	)
@@ -45,16 +38,14 @@ func main() {
 	}
 	logger.Info("db migration successful")
 
-	storage := pg.NewCompanyStorage(dbClient, logger)
-
 	mq, err := service.NewMessageQueue(cfg, logger)
 	if err != nil {
 		logger.Fatal("while message queue init", zap.Error(err))
 	}
 
+	storage := pg.NewCompanyStorage(dbClient, logger)
 	companiesService := controller.NewCompaniesService(cfg, storage, mq)
-
-	ipChecker := http.NewIpApi(cfg, logger)
+	ipChecker := http.NewIpChecker(cfg, logger)
 
 	apiServer, err := api.NewServer(cfg, companiesService, ipChecker)
 	if err != nil {

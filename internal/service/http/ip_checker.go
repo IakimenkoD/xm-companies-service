@@ -7,7 +7,6 @@ import (
 	"github.com/IakimenkoD/xm-companies-service/internal/service"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"io"
 	"io/ioutil"
 	"net/http"
 )
@@ -17,7 +16,7 @@ const (
 	localhost = "127.0.0.1"
 )
 
-func NewIpApi(conf *config.Config, log *zap.Logger) service.IpChecker {
+func NewIpChecker(conf *config.Config, log *zap.Logger) service.IpChecker {
 	return &IpApi{
 		client: &http.Client{
 			Timeout: conf.API.ReadTimeout,
@@ -55,12 +54,7 @@ func (i *IpApi) GetUserLocation(ctx context.Context, ip string) (location string
 		return "", err
 	}
 
-	defer func(Body io.ReadCloser) {
-		err = Body.Close()
-		if err != nil {
-			i.log.Error("closing body err", zap.String("error", err.Error()))
-		}
-	}(resp.Body)
+	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {

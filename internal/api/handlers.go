@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	ierr "github.com/IakimenkoD/xm-companies-service/internal/errors"
 	"github.com/IakimenkoD/xm-companies-service/internal/model"
+	"github.com/IakimenkoD/xm-companies-service/internal/repository/dataprovider"
 	"github.com/pkg/errors"
 	"net/http"
 	"strconv"
@@ -42,7 +43,8 @@ func (srv *Server) getCompanyByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	company, err := srv.controller.GetCompanyByID(ctx, id)
+	filter := dataprovider.NewCompanyFilter().ByIDs(id)
+	company, err := srv.controller.GetCompanies(ctx, filter)
 	if err != nil {
 		respondError(w, err)
 		return
@@ -107,12 +109,17 @@ func (srv *Server) patchCompany(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	company.ID = id
-	if err = srv.controller.UpdateCompany(ctx, company); err != nil {
+
+	company, err = srv.controller.PatchCompany(ctx, company)
+	if err != nil {
 		respondError(w, err)
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	if err = json.NewEncoder(w).Encode(company); err != nil {
+		respondError(w, err)
+		return
+	}
 }
 
 func (srv *Server) deleteCompany(w http.ResponseWriter, r *http.Request) {

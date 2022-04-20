@@ -2,7 +2,7 @@ package service
 
 import "context"
 
-//go:generate minimock -i IpApi -g -o ip_api_mock.go
+//go:generate minimock -i IpChecker -g -o ip_checker_mock.go
 
 // IpChecker interface provides methods to interacts with IpChecker service.
 type IpChecker interface {

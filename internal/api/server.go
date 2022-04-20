@@ -14,7 +14,6 @@ type Server struct {
 	*http.Server
 	controller controller.CompaniesService
 	ipChecker  service.IpChecker
-	mq         service.MessageQueue
 	cfg        *config.Config
 }
 
