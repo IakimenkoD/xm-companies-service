@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-
 	"github.com/IakimenkoD/xm-companies-service/internal/config"
 
 	_ "github.com/jackc/pgx/stdlib"
@@ -13,7 +12,7 @@ import (
 type Client struct {
 	*sqlx.DB
 
-	schemaName string
+	SchemaName string
 }
 
 func NewClient(cfg *config.Config) (*Client, error) {
@@ -36,10 +35,10 @@ func NewClient(cfg *config.Config) (*Client, error) {
 }
 
 func (db *Client) Migrate() error {
-	if _, err := db.Exec(`CREATE SCHEMA IF NOT EXISTS ` + db.schemaName); err != nil {
+	if _, err := db.Exec(`CREATE SCHEMA IF NOT EXISTS ` + db.SchemaName); err != nil {
 		return errors.Wrap(err, "can't create schema")
 	}
-	m, err := migrations(db.schemaName, "migrations")
+	m, err := migrations(db.SchemaName, "migrations")
 	if err != nil {
 		return errors.Wrap(err, "can't create a new migrator instance")
 	}
@@ -51,9 +50,7 @@ func (db *Client) Migrate() error {
 	return nil
 }
 
-const statusCheckQuery = `SELECT true`
-
 func (db *Client) StatusCheck(ctx context.Context) error {
 	var ok bool
-	return db.QueryRowContext(ctx, statusCheckQuery).Scan(&ok)
+	return db.QueryRowContext(ctx, `SELECT true`).Scan(&ok)
 }

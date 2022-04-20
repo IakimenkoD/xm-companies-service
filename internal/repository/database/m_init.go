@@ -6,16 +6,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-func migrationInit() *migrator.Migration {
+func migrationInit(schema string) *migrator.Migration {
 	return &migrator.Migration{
 		Name: "init",
 		Func: func(tx *sql.Tx) error {
 			qs := []string{
-				`CREATE TABLE IF NOT EXISTS xm.migrations (` +
-					`id BIGSERIAL PRIMARY KEY` +
-					`, version VARCHAR NOT NULL UNIQUE)`,
-
-				`CREATE TABLE IF NOT EXISTS xm.companies (` +
+				`CREATE TABLE IF NOT EXISTS ` + schema + `.companies (` +
 					`id BIGSERIAL PRIMARY KEY` +
 					`, name VARCHAR NOT NULL UNIQUE` +
 					`, code VARCHAR NOT NULL UNIQUE` +
@@ -28,7 +24,7 @@ func migrationInit() *migrator.Migration {
 			}
 			for k, query := range qs {
 				if _, err := tx.Exec(query); err != nil {
-					return errors.Wrapf(err, "applying 202105051514_init migration #%d", k)
+					return errors.Wrapf(err, "applying init migration #%d", k)
 				}
 			}
 			return nil

@@ -3,6 +3,7 @@ package pg
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"github.com/IakimenkoD/xm-companies-service/internal/model"
 	"github.com/IakimenkoD/xm-companies-service/internal/repository/database"
 	"github.com/IakimenkoD/xm-companies-service/internal/repository/dataprovider"
@@ -14,18 +15,22 @@ import (
 	"time"
 )
 
-func NewCompanyStorage(client *database.Client) dataprovider.CompaniesStorage {
+func NewCompanyStorage(client *database.Client, logger *zap.Logger) dataprovider.CompaniesStorage {
 	return &CompanyStore{
-		db: client,
+		db:     client,
+		schema: client.SchemaName,
+		log:    logger,
 	}
 }
 
 type CompanyStore struct {
-	db  *database.Client
-	log *zap.Logger
+	db     *database.Client
+	schema string
+	log    *zap.Logger
 }
 
 func (s *CompanyStore) GetByFilter(ctx context.Context, filter *dataprovider.CompanyFilter) (*model.Company, error) {
+
 	entities, err := s.GetListByFilter(ctx, filter)
 
 	switch {
@@ -49,7 +54,7 @@ func (s *CompanyStore) GetListByFilter(ctx context.Context, filter *dataprovider
 		"companies.created_at",
 		"companies.updated_at",
 	).
-		From("companies").
+		From(s.schema + ".companies").
 		Where(getCompaniesCond(filter))
 
 	query, args, err := qb.PlaceholderFormat(sq.Dollar).ToSql()
@@ -60,7 +65,7 @@ func (s *CompanyStore) GetListByFilter(ctx context.Context, filter *dataprovider
 	s.log.Debug("selecting company query SQL",
 		zap.String("query", query),
 		zap.Any("args", args))
-
+	fmt.Println(filter)
 	var entities []*model.Company
 	if err = sqlx.SelectContext(ctx, s.db, &entities, query, args...); err != nil {
 		if err == sql.ErrNoRows {
@@ -73,7 +78,7 @@ func (s *CompanyStore) GetListByFilter(ctx context.Context, filter *dataprovider
 }
 
 func (s *CompanyStore) Insert(ctx context.Context, company *model.Company) (id int64, err error) {
-	query, args, err := sq.Insert("companies").
+	query, args, err := sq.Insert(s.schema + ".companies").
 		SetMap(map[string]interface{}{
 			"name":       company.Name,
 			"code":       company.Code,
@@ -92,7 +97,6 @@ func (s *CompanyStore) Insert(ctx context.Context, company *model.Company) (id i
 	s.log.Debug("inserting company query SQL",
 		zap.String("query", query),
 		zap.Any("args", args))
-
 	row := s.db.QueryRowxContext(ctx, query, args...)
 	if err = row.Err(); err != nil {
 		return id, errors.Wrap(err, "can't execute SQL query for inserting company")
@@ -128,7 +132,7 @@ func (s *CompanyStore) Update(ctx context.Context, company *model.Company) error
 		updates["phone"] = company.Name
 	}
 
-	query, args, err := sq.Update("companies").
+	query, args, err := sq.Update(s.schema + ".companies").
 		SetMap(updates).
 		Where(sq.Eq{"id": company.ID}).
 		PlaceholderFormat(sq.Dollar).
@@ -147,7 +151,7 @@ func (s *CompanyStore) Update(ctx context.Context, company *model.Company) error
 }
 
 func (s *CompanyStore) DeleteByID(ctx context.Context, id int64) error {
-	query, args, err := sq.Delete("companies").
+	query, args, err := sq.Delete(s.schema + ".companies").
 		Where(sq.Eq{"id": id}).
 		PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
@@ -169,11 +173,11 @@ func getCompaniesCond(filter *dataprovider.CompanyFilter) sq.Sqlizer {
 	var cond sq.Sqlizer = sq.And{eq, neq}
 
 	if len(filter.IDs) > 0 {
-		eq["companies.id"] = filter.UserIDs
+		eq["companies.id"] = filter.IDs
 	}
 
 	if len(filter.UserIDs) > 0 {
-		eq["companies.identity_code"] = filter.UserIDs
+		eq["users.id"] = filter.UserIDs
 	}
 
 	if len(filter.Names) > 0 {
@@ -191,6 +195,7 @@ func getCompaniesCond(filter *dataprovider.CompanyFilter) sq.Sqlizer {
 	if len(filter.Phones) > 0 {
 		eq["companies.phone"] = filter.Phones
 	}
+	fmt.Println(cond)
 	return cond
 }
 

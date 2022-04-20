@@ -44,7 +44,7 @@ func main() {
 	}
 	logger.Info("db migration successful")
 
-	storage := pg.NewCompanyStorage(dbClient)
+	storage := pg.NewCompanyStorage(dbClient, logger)
 	service := controller.NewCompaniesService(cfg, storage)
 
 	apiServer, err := api.NewServer(cfg, service)

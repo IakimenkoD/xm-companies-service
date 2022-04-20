@@ -14,7 +14,7 @@ type Config struct {
 	Version         string        `mapstructure:"version"`
 
 	API      api    `mapstructure:"api"`
-	DB       db     `mapstructure:"db"`
+	DB       DB     `mapstructure:"db"`
 	LogLevel string `mapstructure:"log_level"`
 }
 
@@ -24,7 +24,7 @@ type api struct {
 	WriteTimeout time.Duration `mapstructure:"write_timeout"`
 }
 
-type db struct {
+type DB struct {
 	URL          string `mapstructure:"url"`
 	SchemaName   string `mapstructure:"schema_name"`
 	MaxOpenConns int    `mapstructure:"max_open_conns"`

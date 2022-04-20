@@ -19,7 +19,7 @@ func migrations(schema, migrationsTable string) (*migrator.Migrator, error) {
 	return migrator.New(l,
 		migrator.TableName(fmt.Sprintf("%s.%s", schema, migrationsTable)),
 		migrator.Migrations(
-			migrationInit(),
+			migrationInit(schema),
 		),
 	)
 }
