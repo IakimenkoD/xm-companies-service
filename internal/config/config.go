@@ -11,14 +11,13 @@ import (
 type Config struct {
 	Environment     string        `mapstructure:"environment"`
 	ShutdownTimeout time.Duration `mapstructure:"shutdown_timeout"`
-	Version         string        `mapstructure:"version"`
 
-	API      api          `mapstructure:"api"`
-	DB       DB           `mapstructure:"db"`
-	LogLevel string       `mapstructure:"log_level"`
-	MQ       MessageQueue `mapstructure:"mq"`
+	API      api    `mapstructure:"api"`
+	DB       DB     `mapstructure:"db"`
+	LogLevel string `mapstructure:"log_level"`
 
-	IpApi ipApi `mapstructure:"ip_api"`
+	MQ    MessageQueue `mapstructure:"mq"`
+	IpApi ipApi        `mapstructure:"ip_api"`
 }
 
 type api struct {
@@ -60,8 +59,8 @@ var defaults = map[string]interface{}{
 	"api.write_timeout": time.Second * 5,
 	"api.jwt_key":       []byte("IGdvdCBhIHNlY3JldCBjYW4geW91IGtlZXAgaXQ="),
 
-	"ip_api.address":      "https://ipapi.co/",
-	"ip_api.read_timeout": time.Second * 5,
+	"ip_api.address": "https://ipapi.co/",
+	"ip_api.timeout": time.Second * 5,
 
 	"mq.address": "amqp://guest:guest@localhost:5672/",
 	"mq.queue":   "company_updated",

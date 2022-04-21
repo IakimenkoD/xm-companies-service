@@ -19,7 +19,7 @@ const (
 func NewIpChecker(conf *config.Config, log *zap.Logger) service.IpChecker {
 	return &IpApi{
 		client: &http.Client{
-			Timeout: conf.API.ReadTimeout,
+			Timeout: conf.IpApi.Timeout,
 		},
 		Url: conf.IpApi.Address,
 		log: log,

@@ -102,12 +102,19 @@ func (c Controller) PatchCompany(ctx context.Context, company *model.Company) (*
 	if company == nil {
 		return nil, ierr.WrongRequest
 	}
+	f := dataprovider.NewCompanyFilter().ByIDs(company.ID)
+	old, err := c.companyStorage.GetByFilter(ctx, f)
+	if err != nil {
+		return nil, err
+	}
+	if old == nil {
+		return nil, ierr.CompanyNotFound
+	}
 
-	if err := c.companyStorage.Update(ctx, company); err != nil {
+	if err = c.companyStorage.Update(ctx, company); err != nil {
 		return nil, err
 	}
 
-	f := dataprovider.NewCompanyFilter().ByIDs(company.ID)
 	updated, err := c.companyStorage.GetByFilter(ctx, f)
 	if err != nil {
 		return nil, err

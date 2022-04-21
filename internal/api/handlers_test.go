@@ -283,6 +283,15 @@ func TestUpdateCompanies(t *testing.T) {
 				assert.EqualValues(t, "google.com", company.Website)
 			},
 		},
+		{
+			name:           "fail: partial update company not found",
+			path:           companiesURL + "/99",
+			method:         http.MethodPatch,
+			token:          testingToken,
+			prepareRequest: prepareRequest(`{"name": "Meta","website": "google.com"}`, usLocation),
+			expectedStatus: http.StatusNotFound,
+			expectedBody:   "Company not found\n",
+		},
 	}
 	checkTestCases(t, tt)
 }

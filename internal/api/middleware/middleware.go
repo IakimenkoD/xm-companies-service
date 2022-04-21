@@ -25,7 +25,7 @@ func CheckAuth(jwtKey []byte) func(http.Handler) http.Handler {
 				return
 			}
 			// only for test case purposes
-			// TODO should be replaced
+			// TODO should be replaced with something else
 			if token == testingToken {
 				r = r.WithContext(ctx)
 				next.ServeHTTP(w, r)
