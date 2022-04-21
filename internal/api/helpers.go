@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	ierr "github.com/IakimenkoD/xm-companies-service/internal/errors"
 	"github.com/IakimenkoD/xm-companies-service/internal/repository/dataprovider"
 	"github.com/go-chi/chi"
@@ -160,7 +159,6 @@ func respondError(w http.ResponseWriter, err error) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	default:
-		fmt.Println("#########", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

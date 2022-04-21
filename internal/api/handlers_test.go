@@ -83,6 +83,7 @@ func TestCreateCompanies(t *testing.T) {
 }
 
 func TestGetCompanies(t *testing.T) {
+	//should be called in first test case
 	prepareDB := func(_ *testing.T, db *store) {
 		db.client.MustExec(`INSERT INTO ` + db.client.SchemaName + `.companies` +
 			`  ( id,        name,        code, country,        website,     phone) VALUES` +
@@ -95,10 +96,26 @@ func TestGetCompanies(t *testing.T) {
 
 	tt := []testCase{
 		{
+			name:           "get by id",
+			path:           companiesURL + "/14",
+			method:         http.MethodGet,
+			prepareDB:      prepareDB,
+			prepareRequest: prepareRequest(nil, cyLocation),
+			expectedStatus: http.StatusOK,
+			afterTest: func(t *testing.T, resp *http.Response) {
+				var companies []*model.Company
+				if err := json.NewDecoder(resp.Body).Decode(&companies); err != nil {
+					t.Fatalf("could not decode response body: %+v", err)
+				}
+				if assert.Len(t, companies, 1) {
+					assert.Equal(t, "testFour", companies[0].Name)
+				}
+			},
+		},
+		{
 			name:           "get by single id",
 			path:           companiesURL + "?ids=11",
 			method:         http.MethodGet,
-			prepareDB:      prepareDB,
 			prepareRequest: prepareRequest(nil, cyLocation),
 			expectedStatus: http.StatusOK,
 			afterTest: func(t *testing.T, resp *http.Response) {
@@ -213,7 +230,62 @@ func TestGetCompanies(t *testing.T) {
 	checkTestCases(t, tt)
 }
 
-func TestUpdateCompanies(t *testing.T) {}
+func TestUpdateCompanies(t *testing.T) {
+	//should be called in first test case
+	prepareDB := func(_ *testing.T, db *store) {
+		db.client.MustExec(`INSERT INTO ` + db.client.SchemaName + `.companies` +
+			`  ( id,        name,        code, country,        website,     phone) VALUES` +
+			`  ( 11,   'testOne',      '1111',    'cy',   'testone.cy',   '+001234')` +
+			`, ( 12,   'testTwo',      '2222',    'uk',   'testtwo.uk',   '+002345')` +
+			`, ( 13, 'testThree',      '3333',    'bg', 'testthree.bg',   '+003456')` +
+			`, ( 14,  'testFour',      '4444',    'cy',  'testfour.cy',   '+004567')` +
+			`;`)
+	}
+	tt := []testCase{
+		{
+			name:           "success: no auth and location check required",
+			path:           companiesURL + "/11",
+			method:         http.MethodPut,
+			prepareDB:      prepareDB,
+			prepareRequest: prepareRequest(`{"name": "my company","code": "1235","country": "CY","website": "example.com","phone": "+79991123123"}`, ""),
+			expectedStatus: http.StatusNoContent,
+			checkDB: func(t *testing.T, stores *store) {
+				f := dataprovider.NewCompanyFilter().ByIDs(11)
+				company, err := stores.companyStorage.GetByFilter(context.Background(), f)
+				assert.NoError(t, err)
+				assert.NotNil(t, company)
+				assert.EqualValues(t, "1235", company.Code)
+			},
+		},
+		{
+			name:           "fail: all fields required",
+			path:           companiesURL + "/12",
+			method:         http.MethodPut,
+			token:          testingToken,
+			prepareRequest: prepareRequest(`{"name": "my company", "website": "example.com","phone": "+79991123123"}`, cyLocation),
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   "code: Invalid param\n",
+		},
+		{
+			name:           "success: partial update",
+			path:           companiesURL + "/13",
+			method:         http.MethodPatch,
+			token:          testingToken,
+			prepareRequest: prepareRequest(`{"name": "Meta","website": "google.com"}`, usLocation),
+			expectedStatus: http.StatusOK,
+			afterTest: func(t *testing.T, resp *http.Response) {
+				company := model.Company{}
+				if err := json.NewDecoder(resp.Body).Decode(&company); err != nil {
+					t.Fatalf("could not decode response body: %+v", err)
+				}
+				assert.EqualValues(t, 13, company.ID)
+				assert.EqualValues(t, "Meta", company.Name)
+				assert.EqualValues(t, "google.com", company.Website)
+			},
+		},
+	}
+	checkTestCases(t, tt)
+}
 
 func TestDeleteCompanies(t *testing.T) {
 	tt := []testCase{

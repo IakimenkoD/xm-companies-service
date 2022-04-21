@@ -88,14 +88,18 @@ func (srv *Server) updateCompany(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	data := &model.Company{}
-	if err = json.NewDecoder(r.Body).Decode(data); err != nil {
+	company := &model.Company{}
+	if err = json.NewDecoder(r.Body).Decode(company); err != nil {
 		respondError(w, err)
 		return
 	}
-	data.ID = id
+	if err = company.CheckFields(); err != nil {
+		respondError(w, err)
+		return
+	}
+	company.ID = id
 
-	if err = srv.controller.UpdateCompany(ctx, data); err != nil {
+	if err = srv.controller.UpdateCompany(ctx, company); err != nil {
 		respondError(w, err)
 		return
 	}
@@ -118,13 +122,13 @@ func (srv *Server) patchCompany(w http.ResponseWriter, r *http.Request) {
 	}
 	company.ID = id
 
-	company, err = srv.controller.PatchCompany(ctx, company)
+	updated, err := srv.controller.PatchCompany(ctx, company)
 	if err != nil {
 		respondError(w, err)
 		return
 	}
 
-	if err = json.NewEncoder(w).Encode(company); err != nil {
+	if err = json.NewEncoder(w).Encode(updated); err != nil {
 		respondError(w, err)
 		return
 	}

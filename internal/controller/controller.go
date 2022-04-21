@@ -107,7 +107,7 @@ func (c Controller) PatchCompany(ctx context.Context, company *model.Company) (*
 		return nil, err
 	}
 
-	f := dataprovider.NewCompanyFilter().ByIDs()
+	f := dataprovider.NewCompanyFilter().ByIDs(company.ID)
 	updated, err := c.companyStorage.GetByFilter(ctx, f)
 	if err != nil {
 		return nil, err
