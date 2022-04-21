@@ -61,7 +61,7 @@ func (srv *Server) createCompany(w http.ResponseWriter, r *http.Request) {
 
 	company := &model.Company{}
 	if err := json.NewDecoder(r.Body).Decode(company); err != nil {
-		respondError(w, errors.Wrap(ierr.BadRequest, err.Error()))
+		respondError(w, errors.Wrap(ierr.WrongRequest, err.Error()))
 		return
 	}
 	if err := company.CheckFields(); err != nil {
@@ -81,13 +81,21 @@ func (srv *Server) createCompany(w http.ResponseWriter, r *http.Request) {
 }
 
 func (srv *Server) updateCompany(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	data := &model.Company{}
-	if err := json.NewDecoder(r.Body).Decode(data); err != nil {
+	id, err := getURLInt64(r, "companyID")
+	if err != nil {
 		respondError(w, err)
 		return
 	}
-	if err := srv.controller.UpdateCompany(ctx, data); err != nil {
+
+	ctx := r.Context()
+	data := &model.Company{}
+	if err = json.NewDecoder(r.Body).Decode(data); err != nil {
+		respondError(w, err)
+		return
+	}
+	data.ID = id
+
+	if err = srv.controller.UpdateCompany(ctx, data); err != nil {
 		respondError(w, err)
 		return
 	}

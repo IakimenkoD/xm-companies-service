@@ -27,7 +27,7 @@ func getURLInt64(r *http.Request, field string) (int64, error) {
 	}
 
 	int64Param, err := strconv.ParseInt(param, 10, 64)
-	if err != nil {
+	if err != nil || int64Param == 0 {
 		return 0, ierr.InvalidParam
 	}
 
@@ -133,10 +133,10 @@ func parseCompaniesFilter(r *http.Request) (*dataprovider.CompanyFilter, error) 
 
 func respondError(w http.ResponseWriter, err error) {
 	switch {
-	case errors.Is(err, ierr.NotFound):
+	case errors.Is(err, ierr.CompanyNotFound):
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
-	case errors.Is(err, ierr.InvalidParam), errors.Is(err, ierr.BadRequest), errors.Is(err, io.EOF), errors.Is(err, ierr.CompanyExists):
+	case errors.Is(err, ierr.InvalidParam), errors.Is(err, ierr.WrongRequest), errors.Is(err, io.EOF), errors.Is(err, ierr.CompanyExists):
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	default:

@@ -15,22 +15,15 @@ func CheckAuth(jwtKey []byte) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
-			c, err := r.Cookie("token")
+
+			token, err := getAuthToken(r)
 			if err != nil {
-				if err == http.ErrNoCookie {
-					w.WriteHeader(http.StatusUnauthorized)
-					return
-				}
-				w.WriteHeader(http.StatusBadRequest)
+				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
-			//TODO from header also
-
-			tokenStr := c.Value
 
 			claims := &model.Claims{}
-
-			tkn, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
+			tkn, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
 				return jwtKey, nil
 			})
 			if err != nil {
@@ -49,6 +42,26 @@ func CheckAuth(jwtKey []byte) func(http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 		})
 	}
+}
+
+// getAuthToken gets token either from cookie or header
+func getAuthToken(r *http.Request) (string, error) {
+	tokens, ok := r.Header["Authorization"]
+	if ok {
+		if len(tokens) == 1 {
+			return strings.TrimPrefix(tokens[0], "Bearer "), nil
+		}
+	}
+
+	ck, err := r.Cookie("token")
+	if err != nil && err != http.ErrNoCookie {
+		return "", err
+	}
+	if err == nil {
+		return ck.Value, nil
+	}
+
+	return "", nil
 }
 
 func CheckIPAddress(ipChecker service.IpChecker) func(http.Handler) http.Handler {

@@ -18,8 +18,6 @@ type CompaniesService interface {
 	UpdateCompany(ctx context.Context, company *model.Company) error
 	PatchCompany(ctx context.Context, company *model.Company) (*model.Company, error)
 	DeleteCompany(ctx context.Context, id int64) error
-
-	//NotifyChanged
 }
 
 type Controller struct {
@@ -28,11 +26,21 @@ type Controller struct {
 	mq             service.MessageQueue
 }
 
+func NewCompaniesService(cfg *config.Config,
+	companyStorage dataprovider.CompaniesStorage,
+	mq service.MessageQueue) CompaniesService {
+	return &Controller{
+		config:         cfg,
+		companyStorage: companyStorage,
+		mq:             mq,
+	}
+}
+
 func (c Controller) CreateCompany(ctx context.Context, company *model.Company) (id int64, err error) {
 	if company == nil {
-		return id, ierr.BadRequest
+		return id, ierr.WrongRequest
 	}
-	f := dataprovider.NewCompanyFilter().ByNames(company.Name).ByCodes(company.Code)
+	f := dataprovider.NewCompanyFilter().ByCodes(company.Code)
 	duplicates, err := c.companyStorage.GetListByFilter(ctx, f)
 	if err != nil {
 		return id, err
@@ -58,13 +66,17 @@ func (c Controller) GetCompanies(ctx context.Context, filter *dataprovider.Compa
 
 func (c Controller) UpdateCompany(ctx context.Context, company *model.Company) error {
 	if company == nil {
-		return ierr.BadRequest
+		return ierr.WrongRequest
 	}
 
 	f := dataprovider.NewCompanyFilter().ByIDs(company.ID)
 	old, err := c.companyStorage.GetByFilter(ctx, f)
 	if err != nil {
 		return err
+	}
+
+	if old == nil {
+		return ierr.CompanyNotFound
 	}
 
 	if old.Equal(company) {
@@ -88,7 +100,7 @@ func (c Controller) UpdateCompany(ctx context.Context, company *model.Company) e
 
 func (c Controller) PatchCompany(ctx context.Context, company *model.Company) (*model.Company, error) {
 	if company == nil {
-		return nil, ierr.BadRequest
+		return nil, ierr.WrongRequest
 	}
 
 	if err := c.companyStorage.Update(ctx, company); err != nil {
@@ -113,17 +125,7 @@ func (c Controller) DeleteCompany(ctx context.Context, id int64) error {
 		return err
 	}
 	if company == nil {
-		return ierr.NotFound
+		return ierr.CompanyNotFound
 	}
 	return c.companyStorage.DeleteByID(ctx, id)
-}
-
-func NewCompaniesService(cfg *config.Config,
-	companyStorage dataprovider.CompaniesStorage,
-	mq service.MessageQueue) CompaniesService {
-	return &Controller{
-		config:         cfg,
-		companyStorage: companyStorage,
-		mq:             mq,
-	}
 }

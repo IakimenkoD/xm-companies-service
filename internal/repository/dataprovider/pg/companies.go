@@ -184,6 +184,10 @@ func getCompaniesCond(filter *dataprovider.CompanyFilter) sq.Sqlizer {
 		eq["companies.name"] = filter.Names
 	}
 
+	if len(filter.Codes) > 0 {
+		eq["companies.code"] = filter.Codes
+	}
+
 	if len(filter.Countries) > 0 {
 		eq["companies.country"] = filter.Countries
 	}

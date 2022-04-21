@@ -13,7 +13,7 @@ func migrationInit(schema string) *migrator.Migration {
 			qs := []string{
 				`CREATE TABLE IF NOT EXISTS ` + schema + `.companies (` +
 					`id BIGSERIAL PRIMARY KEY` +
-					`, name VARCHAR NOT NULL UNIQUE` +
+					`, name VARCHAR NOT NULL` +
 					`, code VARCHAR NOT NULL UNIQUE` +
 					`, country VARCHAR NOT NULL` +
 					`, website VARCHAR NOT NULL` +
