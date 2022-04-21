@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	ierr "github.com/IakimenkoD/xm-companies-service/internal/errors"
 	"github.com/IakimenkoD/xm-companies-service/internal/repository/dataprovider"
 	"github.com/go-chi/chi"
@@ -122,13 +123,32 @@ func parseCompaniesFilter(r *http.Request) (*dataprovider.CompanyFilter, error) 
 	if err != nil {
 		return nil, err
 	}
+
+	for n := range phones {
+		phones[n] = normalizePhoneNumber(phones[n])
+	}
+
 	return dataprovider.NewCompanyFilter().
 		ByIDs(ids...).
 		ByNames(names...).
 		ByCodes(codes...).
-		ByCountries(countries...).
-		ByWebsites(websites...).
+		ByCountries(toLowerCase(countries)...).
+		ByWebsites(toLowerCase(websites)...).
 		ByPhones(phones...), nil
+}
+
+func normalizePhoneNumber(phoneNumber string) string {
+	phoneNumber = strings.TrimSpace(phoneNumber)
+
+	if len(phoneNumber) == 0 {
+		return ""
+	}
+
+	if !strings.HasPrefix(phoneNumber, "+") {
+		phoneNumber = "+" + phoneNumber
+	}
+
+	return phoneNumber
 }
 
 func respondError(w http.ResponseWriter, err error) {
@@ -140,7 +160,16 @@ func respondError(w http.ResponseWriter, err error) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	default:
+		fmt.Println("#########", err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+func toLowerCase(values []string) []string {
+	result := make([]string, 0, len(values))
+	for _, v := range values {
+		result = append(values, strings.ToLower(v))
+	}
+	return result
 }

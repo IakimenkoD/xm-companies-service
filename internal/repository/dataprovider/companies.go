@@ -5,6 +5,7 @@ import (
 	"github.com/IakimenkoD/xm-companies-service/internal/model"
 )
 
+//go:generate minimock -i CompaniesStorage -g -o companies_storage_mock.go
 type CompaniesStorage interface {
 	GetByFilter(ctx context.Context, filter *CompanyFilter) (*model.Company, error)
 	GetListByFilter(ctx context.Context, filter *CompanyFilter) ([]*model.Company, error)

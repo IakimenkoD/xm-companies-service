@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+//go:generate minimock -i MessageQueue -g -o mq_mock.go
 type MessageQueue interface {
 	NotifyCompanyUpdated(company *model.Company) error
 }

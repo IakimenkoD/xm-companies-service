@@ -36,9 +36,9 @@ type IpApi struct {
 // GetUserLocation gets location from IpApi service by ip.
 func (i *IpApi) GetUserLocation(ctx context.Context, ip string) (location string, err error) {
 	//debug
-	if ip == localhost {
-		return "CY", err
-	}
+	//if ip == localhost {
+	//	return "CY", err
+	//}
 
 	reqUrl := i.Url + ip + "/country/"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqUrl, nil)

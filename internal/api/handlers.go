@@ -138,7 +138,6 @@ func (srv *Server) deleteCompany(w http.ResponseWriter, r *http.Request) {
 		respondError(w, err)
 		return
 	}
-
 	if err = srv.controller.DeleteCompany(ctx, id); err != nil {
 		respondError(w, err)
 		return

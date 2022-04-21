@@ -18,10 +18,8 @@ import (
 
 func main() {
 	logger, _ := zap.NewDevelopment()
-	var (
-		configFilePath = flag.String("config", "./config.example.json", "path to configuration file")
-	)
 
+	configFilePath := flag.String("config", "./config.example.json", "path to configuration file")
 	flag.Parse()
 	cfg, err := config.New(*configFilePath, logger)
 	if err != nil {
@@ -32,7 +30,6 @@ func main() {
 	if err != nil {
 		logger.Fatal("can't establish database connection", zap.Error(err))
 	}
-
 	if err = dbClient.Migrate(); err != nil {
 		logger.Fatal("while applying database migration", zap.Error(err))
 	}

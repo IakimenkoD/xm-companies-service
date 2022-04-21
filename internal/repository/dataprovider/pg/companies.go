@@ -55,7 +55,8 @@ func (s *CompanyStore) GetListByFilter(ctx context.Context, filter *dataprovider
 		"companies.updated_at",
 	).
 		From(s.schema + ".companies").
-		Where(getCompaniesCond(filter))
+		Where(getCompaniesCond(filter)).
+		OrderBy("companies.id")
 
 	query, args, err := qb.PlaceholderFormat(sq.Dollar).ToSql()
 	if err != nil {
@@ -82,8 +83,8 @@ func (s *CompanyStore) Insert(ctx context.Context, company *model.Company) (id i
 		SetMap(map[string]interface{}{
 			"name":       company.Name,
 			"code":       company.Code,
-			"country":    company.Country,
-			"website":    company.Website,
+			"country":    strings.ToLower(company.Country),
+			"website":    strings.ToLower(company.Website),
 			"phone":      company.Phone,
 			"created_at": time.Now().UTC(),
 		}).
@@ -193,7 +194,7 @@ func getCompaniesCond(filter *dataprovider.CompanyFilter) sq.Sqlizer {
 	}
 
 	if len(filter.WebSites) > 0 {
-		eq["companies.web_site"] = filter.WebSites
+		eq["companies.website"] = filter.WebSites
 	}
 
 	if len(filter.Phones) > 0 {
