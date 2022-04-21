@@ -21,24 +21,28 @@ func NewIpChecker(conf *config.Config, log *zap.Logger) service.IpChecker {
 		client: &http.Client{
 			Timeout: conf.IpApi.Timeout,
 		},
-		Url: conf.IpApi.Address,
-		log: log,
+		Url:   conf.IpApi.Address,
+		debug: conf.Environment == "development",
+		log:   log,
 	}
 }
 
 type IpApi struct {
 	client *http.Client
 	log    *zap.Logger
+	debug  bool
 
 	Url string
 }
 
 // GetUserLocation gets location from IpApi service by ip.
 func (i *IpApi) GetUserLocation(ctx context.Context, ip string) (location string, err error) {
-	//debug
-	//if ip == localhost {
-	//	return "CY", err
-	//}
+
+	if i.debug {
+		if ip == localhost {
+			return "CY", err
+		}
+	}
 
 	reqUrl := i.Url + ip + "/country/"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqUrl, nil)
